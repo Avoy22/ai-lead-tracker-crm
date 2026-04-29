@@ -1,0 +1,14 @@
+{
+  "name": "lead-tracker-dashboard-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix lead-tracker-dashboard run dev",
+    "build": "npm --prefix lead-tracker-dashboard run build",
+    "preview": "npm --prefix lead-tracker-dashboard run preview",
+    "lint": "npm --prefix lead-tracker-dashboard run lint"
+  },
+  "dependencies": {
+    "lucide-react": "^1.12.0",
+    "recharts": "^3.8.1"
+  }
+}
