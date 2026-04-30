@@ -1,7 +1,17 @@
 import { Sparkles, Calendar } from 'lucide-react'
 import { TODAY_ISO, formatDate } from '../data/demoData'
 
-export default function Header() {
+const SOURCE_LABEL = {
+  loading: 'Loading…',
+  live: 'Live data',
+  demo: 'Demo data',
+}
+
+export default function Header({ dataSource = 'demo', today }) {
+  const label = SOURCE_LABEL[dataSource] || SOURCE_LABEL.demo
+  const dotClass = dataSource === 'live' ? 'dot dot-live' : 'dot'
+  const displayDate = today || TODAY_ISO
+
   return (
     <header className="app-header">
       <div className="header-inner">
@@ -18,10 +28,10 @@ export default function Header() {
         </div>
         <div className="header-meta">
           <div className="meta-pill">
-            <span className="dot dot-live" /> Demo data
+            <span className={dotClass} /> {label}
           </div>
           <div className="meta-pill">
-            <Calendar size={14} /> {formatDate(TODAY_ISO)}
+            <Calendar size={14} /> {formatDate(displayDate)}
           </div>
         </div>
       </div>

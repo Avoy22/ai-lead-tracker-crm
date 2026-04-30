@@ -1,30 +1,30 @@
 import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
-import { LEADS, formatDate } from '../data/demoData'
+import { formatDate } from '../data/demoData'
 import StatusBadge from './StatusBadge'
 import PriorityBadge from './PriorityBadge'
 import ScoreBar from './ScoreBar'
 
-export default function LeadsTable() {
+export default function LeadsTable({ leads = [] }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
   const filteredLeads = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return LEADS.filter((l) => {
+    return leads.filter((l) => {
       if (statusFilter !== 'All' && l.status !== statusFilter) return false
       if (priorityFilter !== 'All' && l.priority !== priorityFilter) return false
       if (!q) return true
       return (
-        l.name.toLowerCase().includes(q) ||
-        l.company.toLowerCase().includes(q) ||
-        l.industry.toLowerCase().includes(q) ||
-        l.id.toLowerCase().includes(q) ||
-        l.email.toLowerCase().includes(q)
+        (l.name || '').toLowerCase().includes(q) ||
+        (l.company || '').toLowerCase().includes(q) ||
+        (l.industry || '').toLowerCase().includes(q) ||
+        (l.id || '').toLowerCase().includes(q) ||
+        (l.email || '').toLowerCase().includes(q)
       )
     })
-  }, [search, statusFilter, priorityFilter])
+  }, [leads, search, statusFilter, priorityFilter])
 
   return (
     <section className="card">
@@ -34,7 +34,7 @@ export default function LeadsTable() {
           <p className="card-sub">Search, filter and review the full pipeline</p>
         </div>
         <span className="count-pill">
-          {filteredLeads.length} of {LEADS.length}
+          {filteredLeads.length} of {leads.length}
         </span>
       </div>
 

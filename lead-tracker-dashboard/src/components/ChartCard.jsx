@@ -14,8 +14,6 @@ import {
 } from 'recharts'
 import { TrendingUp, Flame, Inbox } from 'lucide-react'
 import {
-  LEADS,
-  EMAIL_QUEUE,
   STATUS_COLORS,
   PRIORITY_COLORS,
   QUEUE_COLORS,
@@ -30,31 +28,31 @@ const TOOLTIP_STYLE = {
 
 const AXIS_TICK = { fill: '#64748b', fontSize: 12 }
 
-export default function ChartCard() {
+export default function ChartCard({ leads = [], emailQueue = {} }) {
   const statusChartData = useMemo(
     () =>
       ['Drafted', 'Contacted', 'Replied', 'Converted'].map((s) => ({
         name: s,
-        value: LEADS.filter((l) => l.status === s).length,
+        value: leads.filter((l) => l.status === s).length,
       })),
-    []
+    [leads]
   )
 
   const priorityChartData = useMemo(
     () => [
-      { name: 'Hot', value: LEADS.filter((l) => l.priority === 'Hot').length },
-      { name: 'Warm', value: LEADS.filter((l) => l.priority === 'Warm').length },
+      { name: 'Hot', value: leads.filter((l) => l.priority === 'Hot').length },
+      { name: 'Warm', value: leads.filter((l) => l.priority === 'Warm').length },
     ],
-    []
+    [leads]
   )
 
   const queueChartData = useMemo(
     () =>
-      Object.entries(EMAIL_QUEUE).map(([k, v]) => ({
+      ['Drafted', 'Sent', 'Approved', 'Failed'].map((k) => ({
         name: k,
-        value: v,
+        value: emailQueue[k] || 0,
       })),
-    []
+    [emailQueue]
   )
 
   return (

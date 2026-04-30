@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Users,
   PenSquare,
@@ -9,7 +9,8 @@ import {
   Flame,
   Gauge,
 } from 'lucide-react'
-import { LEADS, EMAIL_QUEUE } from './data/demoData'
+import { LEADS, EMAIL_QUEUE, TODAY_ISO } from './data/demoData'
+import { fetchDashboard, hasApiUrl } from './services/appsScriptApi'
 import Header from './components/Header'
 import KpiCard from './components/KpiCard'
 import ChartCard from './components/ChartCard'
@@ -19,31 +20,81 @@ import LeadsTable from './components/LeadsTable'
 import SystemArchitecture from './components/SystemArchitecture'
 import './App.css'
 
+const DEMO_DATA = {
+  leads: LEADS,
+  emailQueue: EMAIL_QUEUE,
+  today: TODAY_ISO,
+}
+
 export default function App() {
+  const [dataSource, setDataSource] = useState(hasApiUrl() ? 'loading' : 'demo')
+  const [data, setData] = useState(DEMO_DATA)
+
+  useEffect(() => {
+    if (!hasApiUrl()) return
+    let cancelled = false
+    fetchDashboard()
+      .then((live) => {
+        if (cancelled) return
+        setData({
+          leads: live.leads,
+          emailQueue: live.emailQueue,
+          today: live.today,
+        })
+        setDataSource('live')
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.warn(
+          'Failed to load live dashboard data, falling back to demo:',
+          err
+        )
+        setData(DEMO_DATA)
+        setDataSource('demo')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const stats = useMemo(() => {
-    const counts = LEADS.reduce(
+    const leads = data.leads || []
+    if (leads.length === 0) {
+      return {
+        total: 0,
+        drafted: 0,
+        contacted: 0,
+        replied: 0,
+        converted: 0,
+        hot: 0,
+        avgScore: '0.0',
+      }
+    }
+    const counts = leads.reduce(
       (acc, l) => {
         acc.byStatus[l.status] = (acc.byStatus[l.status] || 0) + 1
         acc.byPriority[l.priority] = (acc.byPriority[l.priority] || 0) + 1
-        acc.scoreTotal += l.score
+        acc.scoreTotal += l.score || 0
         return acc
       },
       { byStatus: {}, byPriority: {}, scoreTotal: 0 }
     )
     return {
-      total: LEADS.length,
+      total: leads.length,
       drafted: counts.byStatus.Drafted || 0,
       contacted: counts.byStatus.Contacted || 0,
       replied: counts.byStatus.Replied || 0,
       converted: counts.byStatus.Converted || 0,
       hot: counts.byPriority.Hot || 0,
-      avgScore: (counts.scoreTotal / LEADS.length).toFixed(1),
+      avgScore: (counts.scoreTotal / leads.length).toFixed(1),
     }
-  }, [])
+  }, [data])
+
+  const sentEmails = data.emailQueue?.Sent ?? 0
 
   return (
     <div className="app-shell">
-      <Header />
+      <Header dataSource={dataSource} today={data.today} />
 
       <main className="app-main">
         <section className="kpi-grid">
@@ -52,19 +103,19 @@ export default function App() {
           <KpiCard icon={Send} label="Contacted" value={stats.contacted} accent="#3b82f6" />
           <KpiCard icon={MessageSquare} label="Replied" value={stats.replied} accent="#8b5cf6" />
           <KpiCard icon={CheckCircle2} label="Converted" value={stats.converted} accent="#10b981" />
-          <KpiCard icon={Mail} label="Sent Emails" value={EMAIL_QUEUE.Sent} accent="#0ea5e9" />
+          <KpiCard icon={Mail} label="Sent Emails" value={sentEmails} accent="#0ea5e9" />
           <KpiCard icon={Flame} label="Hot Leads" value={stats.hot} accent="#ef4444" />
           <KpiCard icon={Gauge} label="Avg Score" value={stats.avgScore} accent="#f59e0b" />
         </section>
 
-        <ChartCard />
+        <ChartCard leads={data.leads} emailQueue={data.emailQueue} />
 
         <section className="split-grid">
-          <HotLeadsTable />
-          <FollowUpsCard />
+          <HotLeadsTable leads={data.leads} />
+          <FollowUpsCard leads={data.leads} today={data.today} />
         </section>
 
-        <LeadsTable />
+        <LeadsTable leads={data.leads} />
 
         <SystemArchitecture />
       </main>

@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { Calendar, CircleAlert, CircleCheck } from 'lucide-react'
-import { LEADS, TODAY_ISO, formatDate } from '../data/demoData'
+import { TODAY_ISO, formatDate } from '../data/demoData'
 import PriorityBadge from './PriorityBadge'
 import StatusBadge from './StatusBadge'
 
-export default function FollowUpsCard() {
+export default function FollowUpsCard({ leads = [], today }) {
+  const todayIso = today || TODAY_ISO
   const followUpsToday = useMemo(
-    () => LEADS.filter((l) => l.nextFollowUp === TODAY_ISO),
-    []
+    () => leads.filter((l) => l.nextFollowUp === todayIso),
+    [leads, todayIso]
   )
 
   return (
@@ -18,7 +19,7 @@ export default function FollowUpsCard() {
             <Calendar size={16} className="inline-icon" /> Follow-ups Due Today
           </h3>
           <p className="card-sub">
-            Leads scheduled for outreach on {formatDate(TODAY_ISO)}
+            Leads scheduled for outreach on {formatDate(todayIso)}
           </p>
         </div>
         <span className="count-pill">{followUpsToday.length}</span>

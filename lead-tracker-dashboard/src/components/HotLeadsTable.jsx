@@ -1,23 +1,22 @@
 import { useMemo } from 'react'
 import { Flame } from 'lucide-react'
-import { LEADS } from '../data/demoData'
 import StatusBadge from './StatusBadge'
 import ScoreBar from './ScoreBar'
 
 function initials(name) {
-  return name
+  return (name || '')
     .split(' ')
     .map((n) => n[0])
     .join('')
 }
 
-export default function HotLeadsTable() {
+export default function HotLeadsTable({ leads = [] }) {
   const hotLeads = useMemo(
     () =>
-      LEADS.filter((l) => l.priority === 'Hot').sort(
-        (a, b) => b.score - a.score
-      ),
-    []
+      leads
+        .filter((l) => l.priority === 'Hot')
+        .sort((a, b) => (b.score || 0) - (a.score || 0)),
+    [leads]
   )
 
   return (
